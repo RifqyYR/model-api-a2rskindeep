@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model, Model
 import os
+from django.core.files.storage import default_storage
 
 def predict(classes):
     if (classes == 0): return "Berminyak"
@@ -14,11 +15,14 @@ def predict(classes):
 
 def classify(file):
     print(f"Classifying file: {file}")
+
+    model_path = default_storage.path('model/' + 'mobile_net_v2.keras')
+    xgb_path = default_storage.path('model/' + 'xgb_model_mobilenetv2.json')
     
     # Load models from the same directory as the script
-    custom_model = load_model("mobile-net-v2.keras")
+    custom_model = load_model(model_path)
     xgb_model = xgb.XGBClassifier()
-    xgb_model.load_model("xgb_model_mobilenetv2.json")
+    xgb_model.load_model(xgb_path)
 
     SIZE = 128
 
