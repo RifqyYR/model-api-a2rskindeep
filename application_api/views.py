@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import UploadedImageSerializer
 from django.core.files.storage import default_storage
-# from .classification_model.mobilenetv2_model import predict, classify
 from .classification_model.mobilenetv3small_model import classify
 import time
 import os
@@ -26,16 +25,23 @@ class ImageUploadView(APIView):
             print(full_file_path)
             
             # Mengklasifikasikan gambar menggunakan fungsi classify
-            label, prob, all_probabilities = classify(full_file_path)
+            all_probabilities_xgb, all_probabilities_lgb, all_probabilities_cb, all_probabilities_yolo, all_probabilities_cnn, all_probabilities_cnn_ex_feat = classify(full_file_path)
 
             # Memformat probabilitas setiap kelas dengan dua angka di belakang koma
-            formatted_probabilities = {label: f"{prob:.2f}%" for label, prob in all_probabilities.items()}
+            formatted_probabilities_xgb = {label: f"{prob:.2f}%" for label, prob in all_probabilities_xgb.items()}
+
+            formatted_probabilities_lgb = {label: f"{prob:.2f}%" for label, prob in all_probabilities_lgb.items()}
+
+            formatted_probabilities_cb = {label: f"{prob:.2f}%" for label, prob in all_probabilities_cb.items()}
 
             # Menyusun hasil dalam format JSON
             response_data = {
-                "result": label,
-                "probability": f"{prob:.2f}%",  # Memformat probabilitas hasil prediksi utama
-                "class_probabilities": formatted_probabilities  # Probabilitas setiap kelas dengan format .2f
+                "class_probabilities_xgb": formatted_probabilities_xgb,
+                "class_probabilities_lgb": formatted_probabilities_lgb,
+                "class_probabilities_cb": formatted_probabilities_cb,
+                "class_probabilities_yolo": all_probabilities_yolo,
+                "class_probabilities_cnn": all_probabilities_cnn,
+                "class_probabilities_cnn_ex_feat": all_probabilities_cnn_ex_feat,
             }
 
             # Mengembalikan response dalam format JSON
