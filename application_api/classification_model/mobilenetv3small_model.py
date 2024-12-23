@@ -4,12 +4,40 @@ import numpy as np
 import joblib
 from torchvision import transforms
 import torch
+from mtcnn import MTCNN
 from torch import nn
 from ultralytics import YOLO
 from scipy.ndimage import gaussian_laplace
 from tensorflow.keras.models import load_model, Model
 from django.core.files.storage import default_storage
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
+
+# Initialize MTCNN
+detector = MTCNN()
+
+def preprocess_image(file, size=224):
+    # Read the image using OpenCV
+    img = cv2.imread(file, cv2.IMREAD_COLOR)
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB for MTCNN
+
+    # Detect faces using MTCNN
+    detections = detector.detect_faces(img_rgb)
+    
+    if detections:
+        # If faces are detected, use the first detected face
+        x, y, width, height = detections[0]['box']  # Get the bounding box
+        x, y = max(0, x), max(0, y)  # Ensure the coordinates are non-negative
+        
+        # Crop the face
+        face = img_rgb[y:y+height, x:x+width]
+        # Resize the cropped face to the target size
+        face = cv2.resize(face, (size, size))
+        img_processed = face
+    else:
+        # If no faces are detected, resize the entire image
+        img_processed = cv2.resize(img_rgb, (size, size))
+    
+    return img_processed
 
 def extract_features(model, images):
     images_preprocessed = preprocess_input(images)
@@ -287,9 +315,7 @@ def classify(file):
     feature_extractor = Model(inputs=custom_model.input, outputs=custom_model.get_layer(layer_name).output)
 
     SIZE = 224
-    img = cv2.imread(file, cv2.IMREAD_COLOR)
-    img = cv2.resize(img, (SIZE, SIZE))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = preprocess_image(file, SIZE)
     
     # Mengklasifikasikan gambar dan mendapatkan label dan probabilitas
     predicted_label, predicted_probability, all_probabilities = classify_image(img, feature_extractor, scaler, xgb_model)
