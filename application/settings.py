@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-*w-iupb5t*0b%*egds(0v422&wxhug6zy175z2c!tt_*o1b-%r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.app']
 
 
 # Application definition
@@ -130,3 +130,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MODEL_URL = '/model/'
 MODEL_ROOT = os.path.join(BASE_DIR, 'models')
+
+# APPEND_SLASH=False
